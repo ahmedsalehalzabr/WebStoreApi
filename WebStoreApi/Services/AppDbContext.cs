@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebStoreApi.Model;
 
 namespace WebStoreApi.Services
 {
@@ -8,5 +9,7 @@ namespace WebStoreApi.Services
         {
             
         }
+        public DbSet<Contact> Contacts { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }
