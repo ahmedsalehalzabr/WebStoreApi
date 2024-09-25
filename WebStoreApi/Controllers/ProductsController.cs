@@ -115,5 +115,23 @@ namespace WebStoreApi.Controllers
 
             return Ok(product);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var product = await context.Products.FindAsync(id);
+            if (product == null) { return NotFound();}
+
+            // delete the image on the server
+            string imagesFolder = env.WebRootPath + "/images/products";
+            System.IO.File.Delete(imagesFolder + product.ImageFileName);
+
+            // delete the product from the database
+             context.Products.Remove(product);
+            await context.SaveChangesAsync();
+
+            return Ok(product);
+
+        }
     }
 }
