@@ -20,9 +20,31 @@ namespace WebStoreApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts()
+        public async Task<IActionResult> GetAllProducts(string? search, string? category,
+            int? minPrice, int? maxPrice)
         {
-            var products = await context.Products.ToListAsync();
+            IQueryable<Product> query = context.Products;
+            if (search != null)
+            {
+                query = query.Where(P => P.Name.Contains(search) || P.Description.Contains(search));
+            }
+
+            if (category != null)
+            {
+                query = query.Where(p => p.Category == category);
+            }
+
+            if (minPrice != null)
+            {
+                query = query.Where(p => p.Price == minPrice);  
+            }
+
+            if (maxPrice != null)
+            {
+                query = query.Where(p => p.Price == maxPrice);
+            }
+
+            var products = await query.ToListAsync();
             return Ok(products);
         }
 
