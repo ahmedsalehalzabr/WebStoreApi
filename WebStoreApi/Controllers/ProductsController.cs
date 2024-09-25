@@ -75,5 +75,45 @@ namespace WebStoreApi.Controllers
 
             return Ok(product);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id , [FromForm]ProductDto productDto)
+        {
+            var product = await context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            string imageFileName = product.ImageFileName;
+            if(productDto.ImageFile != null)
+            {
+                // save the image on the server
+                imageFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                imageFileName += Path.GetExtension(productDto.ImageFile.FileName);
+
+                string imagesFolder = env.WebRootPath + "/images/products";
+                using (var stream = System.IO.File.Create(imagesFolder + imageFileName))
+                {
+                    productDto.ImageFile.CopyTo(stream);
+                }
+
+                // delete the old image
+                System.IO.File.Delete(imagesFolder + product.ImageFileName);
+
+            }
+
+            // update the product in the database
+            product.Name = productDto.Name;
+            product.Brand = productDto.Brand;
+            product.Category = productDto.Category;
+            product.Price = productDto.Price;
+            product.Description = productDto.Description ?? "";
+            product.ImageFileName = imageFileName;
+
+            await context.SaveChangesAsync();
+
+            return Ok(product);
+        }
     }
 }
