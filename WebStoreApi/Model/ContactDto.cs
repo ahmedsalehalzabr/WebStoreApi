@@ -16,5 +16,8 @@ namespace WebStoreApi.Model
         public int SubjectId { get; set; } 
         [Required, MinLength(10), MaxLength(4000)]
         public string Message { get; set; } = "";
+        
+
+       
     }
 }
