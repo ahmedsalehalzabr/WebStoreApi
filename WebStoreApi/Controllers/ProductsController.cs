@@ -21,7 +21,8 @@ namespace WebStoreApi.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAllProducts(string? search, string? category,
-            int? minPrice, int? maxPrice)
+            int? minPrice, int? maxPrice,
+            string? sort, string? order)
         {
             IQueryable<Product> query = context.Products;
             if (search != null)
@@ -42,6 +43,76 @@ namespace WebStoreApi.Controllers
             if (maxPrice != null)
             {
                 query = query.Where(p => p.Price == maxPrice);
+            }
+
+            // sort functionality
+            if (sort == null) sort = "id";
+            if (order == null || order != "asc") order = "desc";
+            if (sort.ToLower() == "name")
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.Name);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.Name);
+                }
+            }
+            else if (sort.ToLower() == "brand")
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.Brand);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.Brand);
+                }
+            }
+            else if (sort.ToLower() == "category")
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.Category);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.Category);
+                }
+            }
+            else if (sort.ToLower() == "price")
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.Price);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.Price);
+                }
+            }
+            else if (sort.ToLower() == "data")
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.CreatedAt);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.CreatedAt);
+                }
+            }
+            else 
+            {
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.Id);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.Id);
+                }
             }
 
             var products = await query.ToListAsync();
