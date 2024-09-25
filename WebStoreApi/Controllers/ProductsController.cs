@@ -22,7 +22,8 @@ namespace WebStoreApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProducts(string? search, string? category,
             int? minPrice, int? maxPrice,
-            string? sort, string? order)
+            string? sort, string? order,
+            int? page)
         {
             IQueryable<Product> query = context.Products;
             if (search != null)
@@ -115,8 +116,27 @@ namespace WebStoreApi.Controllers
                 }
             }
 
+            // pagination functionality
+            if (page == null || page < 1) page = 1;
+            int pageSize = 5;
+            int totalPages = 0;
+
+            decimal count = query.Count();
+            totalPages = (int)Math.Ceiling(count / pageSize);
+
+            query = query.Skip((int) (page - 1) * pageSize).Take(pageSize);
+
+
             var products = await query.ToListAsync();
-            return Ok(products);
+
+            var response = new
+            { 
+               Products = products,
+               TotalPages = totalPages,
+               PageSize = pageSize,
+               Page = page,
+            };
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
