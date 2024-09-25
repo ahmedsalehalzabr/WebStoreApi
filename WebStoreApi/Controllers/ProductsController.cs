@@ -19,13 +19,20 @@ namespace WebStoreApi.Controllers
             this.env = env;
         }
 
+        [HttpGet("category")]
+        public async Task<IActionResult> GetCategories()
+        {
+            var listCategory = await context.Categories.ToListAsync();
+            return Ok(listCategory);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAllProducts(string? search, string? category,
             int? minPrice, int? maxPrice,
             string? sort, string? order,
             int? page)
         {
-            IQueryable<Product> query = context.Products;
+            IQueryable<Product> query = context.Products.Include(c => c.Category);
             if (search != null)
             {
                 query = query.Where(P => P.Name.Contains(search) || P.Description.Contains(search));
@@ -33,7 +40,7 @@ namespace WebStoreApi.Controllers
 
             if (category != null)
             {
-                query = query.Where(p => p.Category == category);
+                query = query.Where(p => p.Category.Name == category);
             }
 
             if (minPrice != null)
@@ -75,11 +82,11 @@ namespace WebStoreApi.Controllers
             {
                 if (order == "asc")
                 {
-                    query = query.OrderBy(p => p.Category);
+                    query = query.OrderBy(p => p.Category.Name);
                 }
                 else
                 {
-                    query = query.OrderByDescending(p => p.Category);
+                    query = query.OrderByDescending(p => p.Category.Name);
                 }
             }
             else if (sort.ToLower() == "price")
@@ -142,7 +149,7 @@ namespace WebStoreApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            var product = await context.Products.FindAsync(id);
+            var product = await context.Products.Include(c => c.Category).FirstOrDefaultAsync(c => c.Id == id);
             if (product == null)
             {
                 return NotFound();
@@ -154,7 +161,14 @@ namespace WebStoreApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromForm]ProductDto productDto)
         {
-            if(productDto.ImageFile == null)
+            var category = await context.Categories.FindAsync(productDto.CategoryId);
+            if (category == null)
+            {
+                ModelState.AddModelError("Category", "Please select a valid category");
+                return BadRequest(ModelState);
+            }
+
+            if (productDto.ImageFile == null)
             {
                 ModelState.AddModelError("ImageFile", "Teh ImageFile is Requird");
                 return BadRequest(ModelState);
@@ -176,7 +190,7 @@ namespace WebStoreApi.Controllers
             {
                 Name = productDto.Name,
                 Brand = productDto.Brand,
-                Category = productDto.Category,
+                Category = category,
                 Price = productDto.Price,
                 Description = productDto.Description ?? "",
                 ImageFileName = imageFileName,
@@ -192,6 +206,13 @@ namespace WebStoreApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id , [FromForm]ProductDto productDto)
         {
+            var category = await context.Categories.FindAsync(productDto.CategoryId);
+            if (category == null)
+            {
+                ModelState.AddModelError("Category", "Please select a valid category");
+                return BadRequest(ModelState);
+            }
+
             var product = await context.Products.FindAsync(id);
             if (product == null)
             {
@@ -219,7 +240,7 @@ namespace WebStoreApi.Controllers
             // update the product in the database
             product.Name = productDto.Name;
             product.Brand = productDto.Brand;
-            product.Category = productDto.Category;
+            product.Category = category;
             product.Price = productDto.Price;
             product.Description = productDto.Description ?? "";
             product.ImageFileName = imageFileName;

@@ -9,8 +9,7 @@ namespace WebStoreApi.Model
         public string Name { get; set; } = "";
         [Required, MaxLength(100)]
         public string Brand { get; set; } = "";
-        [Required, MaxLength(100)]
-        public string Category { get; set; } = "";
+        public int CategoryId { get; set; }
         [Required]
         public decimal Price { get; set; }
         [MaxLength(4000)]
