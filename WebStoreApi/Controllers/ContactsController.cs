@@ -17,16 +17,47 @@ namespace WebStoreApi.Controllers
             this.context = context;
         }
 
-        [HttpGet]
-        public async Task <IActionResult> GetContacts()
+        [HttpGet("subjects")]
+        public async Task<IActionResult> GetSubjects()
         {
-            var contacts = await context.Contacts.ToListAsync();
-            return Ok(contacts);
+            var listSubjects = await context.Subjects.ToListAsync();
+            return Ok(listSubjects);
+        }
+
+        [HttpGet]
+        public async Task <IActionResult> GetContacts(int? page)
+        {
+            if(page == null || page < 1)
+            {
+                page = 1;
+            }
+            int pageSize = 5;
+            int totalPages = 0;
+
+            decimal count = await context.Contacts.CountAsync();
+            totalPages = (int) Math.Ceiling(count / pageSize);
+
+            var contacts = await context.Contacts
+                .Include(c => c.Subject)
+                .OrderByDescending(c => c.Id)
+                .Skip((int)(page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var response = new
+            {
+                Contacts = contacts,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                Page = page
+
+            };
+            return Ok(response);
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetContactById(int id)
         {
-            var contact = await context.Contacts.FindAsync(id);
+            var contact = await context.Contacts.Include(c => c.Subject).FirstOrDefaultAsync(c => c.Id == id);
 
             if (contact == null)
             {
@@ -38,13 +69,20 @@ namespace WebStoreApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateContact(ContactDto contactDto)
         {
+            var subject = await context.Subjects.FindAsync(contactDto.SubjectId);
+            if (subject == null)
+            {
+                ModelState.AddModelError("Subject", "Please select a valid subject");
+                return BadRequest(ModelState);
+            }
+
             Contact contact = new Contact()
             {
                 FirstName = contactDto.FirstName,
                 LastName = contactDto.LastName,
                 Email = contactDto.Email,
                 Phone = contactDto.Phone,
-                Subject = contactDto.Subject,
+                Subject = subject,
                 Message = contactDto.Message,
                 CreatedAt = DateTime.Now
             };
@@ -56,6 +94,13 @@ namespace WebStoreApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateContact(int id, ContactDto contactDto)
         {
+            var subject = await context.Subjects.FindAsync(contactDto.SubjectId);
+            if (subject == null)
+            {
+                ModelState.AddModelError("Subject", "Please select a valid subject");
+                return BadRequest(ModelState);
+            }
+
             var contact = await context.Contacts.FindAsync(id);
             if(contact == null)
             {
@@ -65,9 +110,9 @@ namespace WebStoreApi.Controllers
             contact.LastName = contactDto.LastName;
             contact.Email = contactDto.Email;
             contact.Phone = contactDto.Phone ?? "";
-            contact.Subject = contactDto.Subject;
+            contact.Subject = subject;
             contact.Message = contactDto.Message;
-            contact.CreatedAt = DateTime.Now;
+           
 
             context.SaveChanges();
             return Ok(contact);

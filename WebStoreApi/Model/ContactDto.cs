@@ -12,8 +12,8 @@ namespace WebStoreApi.Model
         public string Email { get; set; } = "";
         [MaxLength(100)]
         public string? Phone { get; set; }
-        [Required, MaxLength(100)]
-        public string Subject { get; set; } = "";
+       
+        public int SubjectId { get; set; } 
         [Required, MinLength(10), MaxLength(4000)]
         public string Message { get; set; } = "";
     }
