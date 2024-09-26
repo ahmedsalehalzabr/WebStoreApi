@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +22,8 @@ namespace WebStoreApi.Controllers
             this.configuration = configuration;
             this.context = context;
         }
+
+     
 
         [HttpPost("Register")]
         public IActionResult Register(UserDto userDto)
