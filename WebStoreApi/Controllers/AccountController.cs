@@ -118,6 +118,46 @@ namespace WebStoreApi.Controllers
             return Ok(response);
         }
 
+        [HttpPost("ForgotPassword")]
+        public IActionResult ForgotPassword(string email)
+        {
+            var user = context.Users.FirstOrDefault(u => u .Email == email);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            //delete any old password reset request
+            var oldPassReset = context.PasswordResets.FirstOrDefault(r => r.Email == email);
+            if (oldPassReset != null)
+            {
+                //delete old password reset request 
+                context.Remove(oldPassReset);
+            }
+
+            // create password reset token
+            string token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString();
+
+            var pssReset = new PasswordReset()
+            {
+                Email = email,
+                Token = token,
+                CreatedAt = DateTime.Now,
+            };
+            context.PasswordResets.Add(pssReset);
+            context.SaveChanges();
+
+            // send the password peset token by email to the user
+            string emailSubject = "Pssword Reset";
+            string username = user.FirstName + " " + user.LastName;
+            string emailMessage = "Dear " + username + "\n" +
+                "We received your password reset request. \n" +
+                "Please copy the following token and paste it in the password reset form: \n" +
+                token + "\n\n" +
+                "Best Regards\n";
+
+            return Ok();
+        }
+
         [Authorize]
         [HttpGet("GetTokenClaims")]
         public IActionResult GetTokenClaims()

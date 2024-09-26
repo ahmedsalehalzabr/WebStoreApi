@@ -14,6 +14,7 @@ namespace WebStoreApi.Services
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<User> Users { get; set; } 
+        public DbSet<PasswordReset> PasswordResets { get; set; } 
 
     }
 }
