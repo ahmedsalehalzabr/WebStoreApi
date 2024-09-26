@@ -17,6 +17,12 @@ namespace WebStoreApi.Controllers
         }
 
 
+        [HttpGet("PaymentMethods")]
+        public IActionResult GetPaymentMethods()
+        {
+            return Ok(OrderHelper.PaymentMethods);
+        }
+
         [HttpGet]
         public IActionResult GetCart(string productIdentifiers)
         {
