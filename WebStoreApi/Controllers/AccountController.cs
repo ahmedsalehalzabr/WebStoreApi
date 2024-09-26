@@ -118,6 +118,23 @@ namespace WebStoreApi.Controllers
             return Ok(response);
         }
 
+        [Authorize]
+        [HttpGet("GetTokenClaims")]
+        public IActionResult GetTokenClaims()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                Dictionary<string, string> claims = new Dictionary<string, string>();
+
+                foreach (Claim claim in identity.Claims)
+                {
+                    claims.Add(claim.Type, claim.Value);
+                }
+                return Ok(claims);
+            }
+            return Ok();
+        }
 
 
         private string CreateJwToken(User user)
